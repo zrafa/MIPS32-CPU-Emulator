@@ -1,6 +1,7 @@
 #include "cpu.h"
 
 void CPU::instruction_decode(bool& exception) {
+	// DEBUG printf("opcode=%X\n", main_opcode());
     switch (main_opcode()) {
         case 0b000000: 
             switch (sub_opcode()) {
@@ -46,6 +47,8 @@ void CPU::instruction_decode(bool& exception) {
                 // mult
                 case 0b011000:
                     return exe_mult(exception);
+                case 0b011001:
+                    return exe_multu(exception);
                 // addu
                 case 0b100001:
                     return exe_addu(exception);
@@ -70,8 +73,24 @@ void CPU::instruction_decode(bool& exception) {
                 // sltu
                 case 0b101011:
                     return exe_sltu(exception);
+                case 0b001011:
+                    return exe_movn(exception);
+                case 0b001010:
+                    return exe_movz(exception);
+                case 0b110110:
+                    return exe_tne(exception);
+                case 0b011010:
+			if (sub_extra_opcode_2() == 0b0000000000)
+                    		return exe_div(exception);
+			else {
+				printf("Desconocida 0\n");
+                    		cp0_.set_exception_code(cp0_.Exc_RI);
+                    		exception = true;
+                    		return;
+			}
                 // unknown instruction exception
                 default:
+				printf("Desconocida 0\n");
                     cp0_.set_exception_code(cp0_.Exc_RI);
                     exception = true;
                     return;
@@ -86,6 +105,7 @@ void CPU::instruction_decode(bool& exception) {
                     return exe_bgez(exception);
                 // unknown instruction exception
                 default:
+				printf("Desconocida 01\n");
                     cp0_.set_exception_code(cp0_.Exc_RI);
                     exception = true;
                     return;
@@ -141,6 +161,7 @@ void CPU::instruction_decode(bool& exception) {
                             return exe_mtc0(exception);
                         // unknown instruction exception
                         default:
+				printf("Desconocida 1\n");
                             cp0_.set_exception_code(cp0_.Exc_RI);
                             exception = true;
                             return;
@@ -153,6 +174,7 @@ void CPU::instruction_decode(bool& exception) {
                     return exe_eret(exception);
                 // unknown instruction exception
                 default:
+				printf("Desconocida 2\n");
                     cp0_.set_exception_code(cp0_.Exc_RI);
                     exception = true;
                     return;
@@ -178,8 +200,52 @@ void CPU::instruction_decode(bool& exception) {
         // cache
         case 0b101111:
             return exe_cache(exception);
+        case 0b100010: //22 lwl
+            return exe_lwl(exception);
+        case 0b101010: //2a swl
+            return exe_swl(exception);
+        case 0b110000: //22 lwl
+            return exe_ll(exception);
+        case 0b111000: //2a swl
+            return exe_sc(exception);
+        case 0b010101: //bnezl
+            return exe_bnezl(exception);
+        case 0b100001: //bnezl
+            return exe_lh(exception);
+        case 0b101001: //bnezl
+            return exe_sh(exception);
+        case 0b011100: // especial 
+            switch (sub_opcode()) {
+		// mul
+                case 0b000010:
+            		return exe_mul(exception);
+                default:
+				printf("Desconocida especial 0\n");
+                    cp0_.set_exception_code(cp0_.Exc_RI);
+                    exception = true;
+                    return;
+            }
+        case 0b010001: // especial 
+            switch (sub_extra_opcode()) {
+                case 0b00000000000:
+            		switch (rs()) {
+              			case 0b00010:
+            				return exe_cfc1(exception);
+	               		default:
+    				    printf("Desconocida especial 0\n");
+		                    cp0_.set_exception_code(cp0_.Exc_RI);
+       	        		    exception = true;
+		                    return;
+	                }
+                default:
+			printf("Desconocida especial 0\n");
+	                cp0_.set_exception_code(cp0_.Exc_RI);
+          	        exception = true;
+		        return;
+            }
         // unknown instruction exception
         default:
+				printf("Desconocida 3 codigo=%X sub_opcode=%X\n", main_opcode(), sub_opcode());
             cp0_.set_exception_code(cp0_.Exc_RI);
             exception = true;
             return;

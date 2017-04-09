@@ -27,6 +27,18 @@ void CPU::exe_srlv(bool&) {
     pc_ += 4;
 }
 
+void CPU::exe_movn(bool&) {
+    if (registers_[rt()] != 0) 
+    	registers_[rd()] = registers_[rs()];
+    pc_ += 4;
+}
+
+void CPU::exe_movz(bool&) {
+    if (registers_[rt()] == 0) 
+    	registers_[rd()] = registers_[rs()];
+    pc_ += 4;
+}
+
 void CPU::exe_srav(bool&) {
     int32_t val = registers_[rt()];
     val >>= registers_[rs()];
@@ -49,6 +61,14 @@ void CPU::exe_syscall(bool& exception) {
     exception = true;
     return;
 }
+
+void CPU::exe_tne(bool& exception) {
+    if (registers_[rs()] != registers_[rt()])
+    	exception = true;
+    pc_ += 4;
+    return;
+}
+
 
 void CPU::exe_mfhi(bool&) {
     registers_[rd()] = hi_;
@@ -78,6 +98,32 @@ void CPU::exe_mult(bool&) {
     lo_ = uint32_t(a);
     pc_ += 4;
 }
+
+void CPU::exe_div(bool&) {
+    int32_t a = registers_[rs()];
+    int32_t b = registers_[rt()];
+    a *= b;
+    if (b != 0)
+    	hi_ = uint32_t(a / b);
+    lo_ = uint32_t(a % b);
+    pc_ += 4;
+}
+
+void CPU::exe_mul(bool&) {
+    int64_t m = registers_[rs()] * registers_[rt()];
+    registers_[rd()] = int32_t (m);
+    pc_ += 4;
+}
+
+void CPU::exe_multu(bool&) {
+    uint64_t a = uint64_t (registers_[rs()]);
+    uint64_t b = uint64_t (registers_[rt()]);
+    a *= b;
+    hi_ = uint32_t(a >> 32);
+    lo_ = uint32_t(a);
+    pc_ += 4;
+}
+
 
 void CPU::exe_addu(bool&) {
     registers_[rd()] = registers_[rs()] + registers_[rt()];
@@ -158,6 +204,12 @@ void CPU::exe_blez(bool&) {
     pc_ += 4;
 }
 
+void CPU::exe_bnezl(bool&) {
+    if (int32_t(registers_[rs()]) != 0)
+        pc_ += branch_offset() * 4;
+    pc_ += 4;
+}
+
 void CPU::exe_bgtz(bool&) {
     if (int32_t(registers_[rs()]) > 0)
         pc_ += branch_offset() * 4;
@@ -204,6 +256,11 @@ void CPU::exe_mfc0(bool&) {
     pc_ += 4;
 }
 
+void CPU::exe_cfc1(bool&) {
+    registers_[rt()] = 0x00; // TODO: because not implemented (several registers) 
+    pc_ += 4;
+}
+
 void CPU::exe_mtc0(bool&) {
     cp0_.registers_[rd()] = registers_[rt()];
     pc_ += 4;
@@ -229,7 +286,47 @@ void CPU::exe_lb(bool& exception) {
     pc_ += 4;
 }
 
+void CPU::exe_lh(bool& exception) {
+    int8_t val;
+    int16_t r; 
+    val = mmu_.read_byte(registers_[rs()] + signed_immediate(), exception);
+    if (exception) return;
+	r = int16_t (val) << 8;
+    val = mmu_.read_byte(registers_[rs()] + signed_immediate() + 1, exception);
+    if (exception) return;
+	r |= int16_t(val);
+    registers_[rt()] = int32_t(r); 
+    pc_ += 4;
+}
+
+void CPU::exe_sh(bool& exception) {
+    int8_t val;
+    int16_t r; 
+    val = int8_t (registers_[rt()] & 0x000000ff);
+    mmu_.write_byte(registers_[rs()] + signed_immediate() + 1, val, exception);
+    if (exception) return;
+
+    val = int8_t ((registers_[rt()] & 0x0000ff00) >> 8);
+    mmu_.write_byte(registers_[rs()] + signed_immediate(), val, exception);
+    if (exception) return;
+    pc_ += 4;
+}
+
+void CPU::exe_lwl(bool& exception) {
+    uint32_t val = mmu_.read_word_unaligned(registers_[rs()] + signed_immediate(), exception);
+    if (exception) return;
+    registers_[rt()] = val;
+    pc_ += 4;
+}
+
 void CPU::exe_lw(bool& exception) {
+    uint32_t val = mmu_.read_word(registers_[rs()] + signed_immediate(), exception);
+    if (exception) return;
+    registers_[rt()] = val;
+    pc_ += 4;
+}
+
+void CPU::exe_ll(bool& exception) {
     uint32_t val = mmu_.read_word(registers_[rs()] + signed_immediate(), exception);
     if (exception) return;
     registers_[rt()] = val;
@@ -256,8 +353,21 @@ void CPU::exe_sb(bool& exception) {
     pc_ += 4;
 }
 
+void CPU::exe_swl(bool& exception) {
+    mmu_.write_word_unaligned(registers_[rs()] + signed_immediate(), registers_[rt()], exception);
+    if (exception) return;
+    pc_ += 4;
+}
+
 void CPU::exe_sw(bool& exception) {
     mmu_.write_word(registers_[rs()] + signed_immediate(), registers_[rt()], exception);
+    if (exception) return;
+    pc_ += 4;
+}
+
+void CPU::exe_sc(bool& exception) {
+    mmu_.write_word(registers_[rs()] + signed_immediate(), registers_[rt()], exception);
+    registers_[rt()] = 0x1;
     if (exception) return;
     pc_ += 4;
 }

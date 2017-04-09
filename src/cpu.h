@@ -9,10 +9,18 @@ public:
         cp0_(), mmu_(cp0_, rom, flash), pc_(PC_INITIAL) { }
 
     void run() {
+	unsigned int tick=0; // RAFA
         while (true) {
             bool exception = false;
             next(exception);
             
+	
+		if (tick>=1000000) {
+		  tick=0;
+	          printf("instruccion, pc=%X\n", pc_);
+		}
+		tick++;
+
             if (exception) {
                 // store return pc only in normal level
                 if (!cp0_.Status_EXL())
@@ -37,11 +45,24 @@ private:
 
         // instruction fetch
         instruction_ = mmu_.read_word(pc_, exception);
+		printf("instruccion=%X, pc=%X\n", instruction_, pc_);
+	if (pc_ == 0x80167e98) {
+		printf("registro a0 =%X, \n", registers_[REG_A0]);
+	} else if (pc_ == 0x80167eac) {
+		int excep;
+		 uint32_t val = mmu_.read_byte(registers_[REG_V0], exception);
+		printf("memoria =%X, \n", val);
+	};
+	if ((pc_ >= 0x80181fe8) && (pc_ <= 0x801822bc)) {
+	//	printf("pc=%X, registro a0 =%X, a1=%X, a2=%X, t0=%x, t1=%X, t2=%X, t3=%X, t4=%X, t5=%X, t6=%X, t7=%X, t8=%X \n", pc_, registers_[REG_A0], registers_[REG_A1], registers_[REG_A2], registers_[REG_T0], registers_[REG_T1], registers_[REG_T2], registers_[REG_T3], registers_[REG_T4], registers_[REG_T5], registers_[REG_T6], registers_[REG_T7], registers_[REG_T8]);
+	};
+
         if (exception) return;
         
         // instruction decode
         instruction_decode(exception);
         if (exception) return;
+	// DEBUG printf("INSTR decodificada. Clock:%X \n", cp0_.registers_[cp0_.Count]);
 
         // clock interrupt
         // interrupt will be handled after the current instruction
@@ -52,6 +73,7 @@ private:
                 cp0_.interrupt_enabled(cp0_.IP_7) /* clock interrupt is enabled */) {
                 cp0_.set_interrupt_code(cp0_.IP_7);
                 cp0_.set_exception_code(cp0_.Exc_Int);
+		printf("Desconocida\n");
                 exception = true;
                 return;
             }
@@ -109,10 +131,26 @@ private:
     void exe_sw(bool& exception);
     void exe_cache(bool& exception);
 
+    void exe_lwl(bool& exception);
+    void exe_swl(bool& exception);
+    void exe_ll(bool& exception);
+    void exe_sc(bool& exception);
+    void exe_bnezl(bool& exception);
+    void exe_movn(bool& exception);
+    void exe_lh(bool& exception);
+    void exe_movz(bool& exception);
+    void exe_sh(bool& exception);
+    void exe_multu(bool& exception);
+    void exe_mul(bool& exception);
+    void exe_cfc1(bool& exception);
+    void exe_tne(bool& exception);
+    void exe_div(bool& exception);
 
     // fields of instruction
     uint32_t main_opcode() const { return instruction_ >> 26; }
     uint32_t sub_opcode() const { return instruction_ & 0x3f; }
+    uint32_t sub_extra_opcode() const { return instruction_ & 0x7ff; }
+    uint32_t sub_extra_opcode_2() const { return instruction_ >> 6 & 0x3ff; }
     uint32_t rs() const { return instruction_ >> 21 & 0x1f; }
     uint32_t rt() const { return instruction_ >> 16 & 0x1f; }
     uint32_t rd() const { return instruction_ >> 11 & 0x1f; }
@@ -123,7 +161,9 @@ private:
     uint16_t unsigned_immediate() const { return uint16_t(instruction_ & 0xffff); }
 
     // virtual address of initial PC
-    constexpr static uint32_t PC_INITIAL = 0xbfc00000;
+    // RAFA constexpr static uint32_t PC_INITIAL = 0xbfc00000;
+    // constexpr static uint32_t PC_INITIAL = 0x80100000;
+    constexpr static uint32_t PC_INITIAL = 0x80205fe0;
 
     CP0 cp0_;
     MMU mmu_;

@@ -13,6 +13,24 @@ public:
         cp0_(cp0), rom_(rom), flash_(flash) {
         ram_.resize(RAM_SIZE);    
         // need not initialize TLB
+
+	uint8_t byte__;
+	uint32_t i;
+	uint32_t palabra;
+	bool exc=true;
+	for (i=0x0; i<0x800000; i++) {	
+		exc=false;
+		byte__ = read_physical(0x1e000000+i);
+		write_byte(0x80010000+i, byte__, exc);
+	}
+/*
+	for (i=0x0; i<0x800000; i++) {	
+		exc=false;
+		palabra = read_word(0x80100000+i, exc);
+		printf("direccion=%X, palabra=%X \n", 0x80100000+i, palabra);
+	}
+*/
+	
     }
 
     uint8_t read_byte(uint32_t virtual_addr, bool& exception) {
@@ -26,6 +44,7 @@ public:
             // load from an address that is not aligned on a halfword boundary
             cp0_.set_exception_code(cp0_.Exc_AdEL);
             cp0_.registers_[cp0_.BadVAddr] = virtual_addr;
+	printf("Desconocida half\n");
             exception = true;
             return 0x00;
         }
@@ -36,11 +55,22 @@ public:
 
     }
 
+    uint32_t read_word_unaligned(uint32_t virtual_addr, bool& exception) {
+        uint32_t physical_addr = addr_translate(virtual_addr, 0, exception);
+        if (exception) return 0x00;
+        return uint32_t(read_physical(physical_addr + 0))       |
+               uint32_t(read_physical(physical_addr + 1)) <<  8 |
+               uint32_t(read_physical(physical_addr + 2)) << 16 |
+               uint32_t(read_physical(physical_addr + 3)) << 24;
+
+    }
     uint32_t read_word(uint32_t virtual_addr, bool& exception) {
         if (virtual_addr & 0x03) {
             // load or instruction fetch from an address that is not aligned on a word boundary
             cp0_.set_exception_code(cp0_.Exc_AdEL);
             cp0_.registers_[cp0_.BadVAddr] = virtual_addr;
+	printf("Desconocida word\n");
+	printf("Desconocida TLB refill virtual :%X virtual y:\n", virtual_addr);
             exception = true;
             return 0x00;
         }
@@ -64,6 +94,7 @@ public:
             // save to an address that is not aligned on a halfword boundary
             cp0_.set_exception_code(cp0_.Exc_AdES);
             cp0_.registers_[cp0_.BadVAddr] = virtual_addr;
+	printf("Desconocida write half\n");
             exception = true;
             return;
         }
@@ -73,11 +104,21 @@ public:
         write_physical(physical_addr + 1, uint8_t(data >> 8));
     }
 
+    void write_word_unaligned(uint32_t virtual_addr, uint32_t data, bool& exception) {
+        uint32_t physical_addr = addr_translate(virtual_addr, 1, exception);
+        if (exception) return;
+        write_physical(physical_addr + 0, uint8_t(data));
+        write_physical(physical_addr + 1, uint8_t(data >>  8));
+        write_physical(physical_addr + 2, uint8_t(data >> 16));
+        write_physical(physical_addr + 3, uint8_t(data >> 24));
+    }
+    
     void write_word(uint32_t virtual_addr, uint32_t data, bool& exception) {
         if (virtual_addr & 0x03) {
             // save to an address that is not aligned on a word boundary
             cp0_.set_exception_code(cp0_.Exc_AdES);
             cp0_.registers_[cp0_.BadVAddr] = virtual_addr;
+	printf("Desconocida write word\n");
             exception = true;
             return;
         }
@@ -162,6 +203,7 @@ private:
                     cp0_.registers_[cp0_.Context] |= virtual_addr >> 13 << 4;
                     cp0_.registers_[cp0_.EntryHi] &= 0x00001fff; 
                     cp0_.registers_[cp0_.EntryHi] |= virtual_addr & 0xffffe000;
+	printf("Desconocida TLB invalid exception : %X\n", virtual_addr);
                     exception = true;
                     return 0x00;
                 }
@@ -174,6 +216,7 @@ private:
                     cp0_.registers_[cp0_.Context] |= virtual_addr >> 13 << 4;
                     cp0_.registers_[cp0_.EntryHi] &= 0x00001fff; 
                     cp0_.registers_[cp0_.EntryHi] |= virtual_addr & 0xffffe000;
+	printf("Desconocida TLB modi \n");
                     exception = true;
                     return 0x00;
                 }
@@ -188,13 +231,14 @@ private:
         cp0_.registers_[cp0_.Context] |= virtual_addr >> 13 << 4;
         cp0_.registers_[cp0_.EntryHi] &= 0x00001fff; 
         cp0_.registers_[cp0_.EntryHi] |= virtual_addr & 0xffffe000;
+	printf("Desconocida TLB refill virtual :%X virtual y:%X\n", virtual_addr, virtual_addr&0xffffe000);
         exception = true;
         return 0x00;
     }
 
     // virtual memory layout
     constexpr static uint32_t KUSEG_BASE = 0;
-    constexpr static uint32_t KUSEG_SIZE = 0x80000000;
+    constexpr static uint32_t KUSEG_SIZE = 0x60000000;
 
     constexpr static uint32_t KSEG0_BASE = 0x80000000;
     constexpr static uint32_t KSEG0_SIZE = 0x20000000;
@@ -203,7 +247,7 @@ private:
     constexpr static uint32_t KSEG1_SIZE = 0x20000000;
 
     constexpr static uint32_t KSEG2_BASE = 0xc0000000;
-    constexpr static uint32_t KSEG2_SIZE = 0x40000000;
+    constexpr static uint32_t KSEG2_SIZE = 0x20000000;
 
     // physical memory layout
     constexpr static uint32_t RAM_BASE = 0;
