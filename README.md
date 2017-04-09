@@ -1,5 +1,19 @@
 # MIPS32 CPU Emulator
 
+Rafael Ignacio Zurita <rafaelignacio.zurita@gmail.com>
+
+This fork of for making the CPU emulator a complete system, and able to run
+a Linux Kernel for MIPS.
+
+Currently, it is able to run a 4.10 Linux Kernel, emulating the instruction set
+of jz4740 SOC CPU inside of Ben Nanonote machines.
+(The kernel has some patches I wrote in order to avoid the delay slots
+optimizations, because the emulator does not have it implemented.)
+
+
+
+Old README
+==========
 This is a MIPS32 instruction subset based CPU emulator. It supports over 40 instructions and is capable of running a Unix-like OS [ucore](https://github.com/chyyuu/ucore_os_lab). This emulator is implemented in C++ and completely platform independent. You can compile it to JavaScript with [emscripten](http://emscripten.org) so as to run this emulator in web browsers. 
 
 
