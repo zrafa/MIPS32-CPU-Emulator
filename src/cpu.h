@@ -5,8 +5,9 @@
 
 class CPU {
 public:
-    CPU(std::istream& rom, std::istream& flash): 
-        cp0_(), mmu_(cp0_, rom, flash), pc_(PC_INITIAL) { }
+    CPU(std::istream& rom, std::istream& flash, uint32_t entry): 
+        cp0_(), mmu_(cp0_, rom, flash), pc_(entry) { }
+        // RAFA cp0_(), mmu_(cp0_, rom, flash), pc_(PC_INITIAL) { }
 
     void run() {
 	unsigned int tick=0; // RAFA
@@ -163,7 +164,9 @@ private:
     // virtual address of initial PC
     // RAFA constexpr static uint32_t PC_INITIAL = 0xbfc00000;
     // constexpr static uint32_t PC_INITIAL = 0x80100000;
-    constexpr static uint32_t PC_INITIAL = 0x80205fe0;
+    static uint32_t PC_INITIAL;
+    void entry_point(uint32_t entry) { PC_INITIAL = entry; }
+    // constexpr static uint32_t PC_INITIAL = 0x80221520;
 
     CP0 cp0_;
     MMU mmu_;
