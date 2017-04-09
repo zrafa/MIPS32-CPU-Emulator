@@ -2,7 +2,7 @@
 
 Rafael Ignacio Zurita <rafaelignacio.zurita@gmail.com>
 
-This fork of for making the CPU emulator a complete system, and able to run
+This fork is for making the CPU emulator a complete system, and able to run
 a Linux Kernel for MIPS.
 
 Currently, it is able to run a 4.10 Linux Kernel, emulating the instruction set
