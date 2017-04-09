@@ -1,9 +1,8 @@
 # MIPS32 CPU Emulator
 
-Rafael Ignacio Zurita <rafaelignacio.zurita@gmail.com>
-
-This fork is for making the CPU emulator a complete system, and able to run
-a Linux Kernel for MIPS.
+Rafael Ignacio Zurita <rafaelignacio.zurita@gmail.com>. This fork is for 
+making the CPU emulator a complete system, and able to run
+a Linux Kernel for MIPS. Original Emulator is a great project to start (https://github.com/JamisHoo/MIPS32-CPU-Emulator).
 
 Currently, it is able to run a 4.10 Linux Kernel, emulating the instruction set
 of jz4740 SOC CPU inside of Ben Nanonote machines.
