@@ -10,6 +10,17 @@ of jz4740 SOC CPU inside of Ben Nanonote machines.
 (The kernel has some patches I wrote in order to avoid the delay slots
 optimizations, because the emulator does not have it implemented.)
 
+Usage
+-----
+	./cpu kernel_entry_address
+
+Elf vmlinux kernel must be Os_image/disk0 file.
+
+Example
+-------
+	make cpu
+	cp ../linux-4.10/vmlinux Os_image/disk0
+	./cpu 80010000
 
 
 Old README
