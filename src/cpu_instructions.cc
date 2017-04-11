@@ -312,17 +312,60 @@ void CPU::exe_sh(bool& exception) {
     pc_ += 4;
 }
 
-void CPU::exe_lwl(bool& exception) {
-    uint32_t val = mmu_.read_word_unaligned(registers_[rs()] + signed_immediate(), exception);
+void CPU::exe_lw(bool& exception) {
+    uint32_t val = mmu_.read_word(registers_[rs()] + signed_immediate(), exception);
     if (exception) return;
     registers_[rt()] = val;
     pc_ += 4;
 }
 
-void CPU::exe_lw(bool& exception) {
-    uint32_t val = mmu_.read_word(registers_[rs()] + signed_immediate(), exception);
+void CPU::exe_lwr(bool& exception) {
+    uint32_t val = 0;
+    int r = (registers_[rs()] + signed_immediate()) % 4;
+    switch (r) {
+	case 0:
+		val = mmu_.read_word(registers_[rs()] + signed_immediate(), exception);
+		break;
+	case 1:
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate() + 2, exception) << 16);
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate() + 1, exception) << 8);
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate(), exception));
+		break;
+	case 2:
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate() + 1, exception) << 8);
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate(), exception));
+		break;
+	case 3:
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate(), exception));
+		break;
+    }
     if (exception) return;
-    registers_[rt()] = val;
+    registers_[rt()] = registers_[rt()] | val;
+    pc_ += 4;
+}
+
+void CPU::exe_lwl(bool& exception) {
+    uint32_t val = 0;
+    int r = (registers_[rs()] + signed_immediate()) % 4;
+    switch (r) {
+	case 0:
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate(), exception) << 24);
+		break;
+	case 1:
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate(), exception) << 24);
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate() - 1, exception) << 16);
+		break;
+	case 2:
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate(), exception) << 24);
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate() - 1, exception) << 16);
+		val = val | (mmu_.read_byte(registers_[rs()] + signed_immediate() - 2, exception) << 8);
+		break;
+	case 3:
+		val = mmu_.read_word(registers_[rs()] + signed_immediate() - 3, exception);
+		break;
+    }
+    if (exception) return;
+    registers_[rt()] = registers_[rt()] | val;
     pc_ += 4;
 }
 
@@ -354,7 +397,52 @@ void CPU::exe_sb(bool& exception) {
 }
 
 void CPU::exe_swl(bool& exception) {
-    mmu_.write_word_unaligned(registers_[rs()] + signed_immediate(), registers_[rt()], exception);
+    uint32_t val;
+    int r = (registers_[rs()] + signed_immediate()) % 4;
+    switch (r) {
+	case 0:
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() + 3, (registers_[rt()] >> 24), exception);
+		break;
+	case 1:
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() + 1, (registers_[rt()] >> 24), exception);
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() + 2, (registers_[rt()] >> 16), exception);
+		break;
+	case 2:
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() - 1, (registers_[rt()] >> 24), exception);
+   		mmu_.write_byte(registers_[rs()] + signed_immediate(), (registers_[rt()] >> 16), exception);
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() + 1, (registers_[rt()] >> 8), exception);
+		break;
+	case 3:
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() - 1, (registers_[rt()] >> 24), exception);
+   		mmu_.write_byte(registers_[rs()] + signed_immediate(), (registers_[rt()] >> 16), exception);
+		break;
+    }
+    if (exception) return;
+    pc_ += 4;
+}
+
+void CPU::exe_swr(bool& exception) {
+    uint32_t val;
+    int r = (registers_[rs()] + signed_immediate()) % 4;
+    switch (r) {
+	case 0:
+   		mmu_.write_word(registers_[rs()] + signed_immediate(), registers_[rt()], exception);
+		break;
+	case 1:
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() - 1, (registers_[rt()] >> 16), exception);
+   		mmu_.write_byte(registers_[rs()] + signed_immediate(), (registers_[rt()] >> 8), exception);
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() + 1, registers_[rt()], exception);
+		break;
+	case 2:
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() - 2, (registers_[rt()] >> 8), exception);
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() - 1, registers_[rt()], exception);
+		break;
+	case 3:
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() - 1, (registers_[rt()] >> 16), exception);
+   		mmu_.write_byte(registers_[rs()] + signed_immediate(), (registers_[rt()] >> 8), exception);
+   		mmu_.write_byte(registers_[rs()] + signed_immediate() + 1, registers_[rt()], exception);
+		break;
+    }
     if (exception) return;
     pc_ += 4;
 }

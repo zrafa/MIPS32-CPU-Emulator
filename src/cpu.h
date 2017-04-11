@@ -132,8 +132,9 @@ private:
     void exe_sw(bool& exception);
     void exe_cache(bool& exception);
 
-    void exe_lwl(bool& exception);
+//    void exe_lwl(bool& exception);
     void exe_swl(bool& exception);
+    void exe_swr(bool& exception);
     void exe_ll(bool& exception);
     void exe_sc(bool& exception);
     void exe_bnezl(bool& exception);
@@ -146,6 +147,8 @@ private:
     void exe_cfc1(bool& exception);
     void exe_tne(bool& exception);
     void exe_div(bool& exception);
+    void exe_lwr(bool& exception);
+    void exe_lwl(bool& exception);
 
     // fields of instruction
     uint32_t main_opcode() const { return instruction_ >> 26; }

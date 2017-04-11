@@ -200,8 +200,8 @@ void CPU::instruction_decode(bool& exception) {
         // cache
         case 0b101111:
             return exe_cache(exception);
-        case 0b100010: //22 lwl
-            return exe_lwl(exception);
+//        case 0b100010: //22 lwl
+ //           return exe_lwl(exception);
         case 0b101010: //2a swl
             return exe_swl(exception);
         case 0b110000: //22 lwl
@@ -225,6 +225,15 @@ void CPU::instruction_decode(bool& exception) {
                     exception = true;
                     return;
             }
+        case 0b100110: // lwr 
+            return exe_lwr(exception);
+		
+        case 0b100010: // lwl 
+            return exe_lwl(exception);
+
+        case 0b101110: // swr
+            return exe_swl(exception);
+		
         case 0b010001: // especial 
             switch (sub_extra_opcode()) {
                 case 0b00000000000:
