@@ -150,8 +150,8 @@ void CPU::instruction_decode(bool& exception) {
         case 0b001111:
             return exe_lui(exception);
         case 0b010000:
-            switch (sub_opcode()) {
-                case 0b000000:
+            switch (sub_extra_opcode_3()) {
+                case 0b00000000:
                     switch (rs()) {
                         // mfc0
                         case 0b00000:
@@ -166,6 +166,13 @@ void CPU::instruction_decode(bool& exception) {
                             exception = true;
                             return;
                     }
+                default:
+				printf("Desconocida 2\n");
+                    cp0_.set_exception_code(cp0_.Exc_RI);
+                    exception = true;
+                    return;
+            }
+	    switch (sub_extra_opcode_2()) {
                 // tlbwi
                 case 0b000010:
                     return exe_tlbwi(exception);
@@ -174,7 +181,7 @@ void CPU::instruction_decode(bool& exception) {
                     return exe_eret(exception);
                 // unknown instruction exception
                 default:
-				printf("Desconocida 2\n");
+				printf("Desconocida 22\n");
                     cp0_.set_exception_code(cp0_.Exc_RI);
                     exception = true;
                     return;

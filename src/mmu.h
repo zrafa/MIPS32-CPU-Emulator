@@ -3,12 +3,20 @@
 
 #include <iostream>
 #include <fstream>
+#include <unistd.h>
 
 #include "cp0.h"
 
 
 class MMU {
 public:
+ MMU(CP0& cp0, std::istream& rom, std::istream& flash):
+        cp0_(cp0), rom_(rom), flash_(flash) {
+        ram_.resize(RAM_SIZE);    
+        // need not initialize TLB
+    }
+
+/*
     MMU(CP0& cp0, std::istream& rom, std::istream& flash):
         cp0_(cp0), rom_(rom), flash_(flash) {
         ram_.resize(RAM_SIZE);    
@@ -22,16 +30,18 @@ public:
 		exc=false;
 		byte__ = read_physical(0x1e000000+i);
 		write_byte(0x80010000+i, byte__, exc);
+		printf("direccion=%X, palabra=%X \n", 0x1e000000+i, byte__);
 	}
-/*
-	for (i=0x0; i<0x800000; i++) {	
+	sleep(20);
+	for (i=0x0; i<0x800000; i=i+4) {	
 		exc=false;
-		palabra = read_word(0x80100000+i, exc);
-		printf("direccion=%X, palabra=%X \n", 0x80100000+i, palabra);
+		palabra = read_word(0x80010000+i, exc);
+		printf("direccion=%X, palabra=%X \n", 0x80010000+i, palabra);
 	}
-*/
+	sleep(20);
 	
     }
+*/
 
     uint8_t read_byte(uint32_t virtual_addr, bool& exception) {
         uint32_t physical_addr = addr_translate(virtual_addr, 0, exception);
@@ -251,7 +261,8 @@ private:
 
     // physical memory layout
     constexpr static uint32_t RAM_BASE = 0;
-    constexpr static uint32_t RAM_SIZE = 1024 * 1024 * 8;  // 8 MB
+    // RAFA constexpr static uint32_t RAM_SIZE = 1024 * 1024 * 8;  // 8 MB
+    constexpr static uint32_t RAM_SIZE = 1024 * 1024 * 16;  // 16 MB
 
     constexpr static uint32_t ROM_BASE = 0x1fc00000;
     constexpr static uint32_t ROM_SIZE = 1024 * 4;  // 4 KB

@@ -6,8 +6,8 @@
 class CPU {
 public:
     CPU(std::istream& rom, std::istream& flash, uint32_t entry): 
-        cp0_(), mmu_(cp0_, rom, flash), pc_(entry) { }
-        // RAFA cp0_(), mmu_(cp0_, rom, flash), pc_(PC_INITIAL) { }
+        // RAFA cp0_(), mmu_(cp0_, rom, flash), pc_(entry) { }
+        cp0_(), mmu_(cp0_, rom, flash), pc_(PC_INITIAL) { }
 
     void run() {
 	unsigned int tick=0; // RAFA
@@ -155,6 +155,8 @@ private:
     uint32_t sub_opcode() const { return instruction_ & 0x3f; }
     uint32_t sub_extra_opcode() const { return instruction_ & 0x7ff; }
     uint32_t sub_extra_opcode_2() const { return instruction_ >> 6 & 0x3ff; }
+    uint32_t sel() const { return instruction_ & 0x7; }
+    uint32_t sub_extra_opcode_3() const { return instruction_ >> 3 & 0xff; }
     uint32_t rs() const { return instruction_ >> 21 & 0x1f; }
     uint32_t rt() const { return instruction_ >> 16 & 0x1f; }
     uint32_t rd() const { return instruction_ >> 11 & 0x1f; }
@@ -165,11 +167,9 @@ private:
     uint16_t unsigned_immediate() const { return uint16_t(instruction_ & 0xffff); }
 
     // virtual address of initial PC
-    // RAFA constexpr static uint32_t PC_INITIAL = 0xbfc00000;
-    // constexpr static uint32_t PC_INITIAL = 0x80100000;
-    static uint32_t PC_INITIAL;
-    void entry_point(uint32_t entry) { PC_INITIAL = entry; }
-    // constexpr static uint32_t PC_INITIAL = 0x80221520;
+    constexpr static uint32_t PC_INITIAL = 0xbfc00000;
+    // RAFA static uint32_t PC_INITIAL;
+    // RAFA void entry_point(uint32_t entry) { PC_INITIAL = entry; }
 
     CP0 cp0_;
     MMU mmu_;
