@@ -94,7 +94,11 @@ public:
     }
 
     void write_byte(uint32_t virtual_addr, uint8_t data, bool& exception) {
+	if ((virtual_addr == 0xbf000418) || (virtual_addr == 0x1f000418))
+		printf("Direccion bf000418 word\n");
         uint32_t physical_addr = addr_translate(virtual_addr, 1, exception);
+	if ((physical_addr == 0xbf000418) || (physical_addr == 0x1f000418))
+		printf("Direccion 2 bf000418 word\n");
         if (exception) return;
         write_physical(physical_addr, data);
     }

@@ -46,7 +46,15 @@ private:
 
         // instruction fetch
         instruction_ = mmu_.read_word(pc_, exception);
+
+	#define DEBUG 1
+	#ifdef DEBUG
 		printf("instruccion=%X, pc=%X\n", instruction_, pc_);
+	#endif
+
+	// SIMPLE SERIAL
+	if (pc_ == 0x801009f4)
+		printf("%c", registers_[REG_V1]);
 	if (pc_ == 0x80167e98) {
 		printf("registro a0 =%X, \n", registers_[REG_A0]);
 	} else if (pc_ == 0x80167eac) {
