@@ -1,0 +1,4 @@
+
+bf000418 es el ASCII POS DISPLAY mips_display_message
+colocar que si una letra va ahí debe ser impresa en pantalla
+ver malta board ppor 1f000400

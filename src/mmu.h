@@ -80,7 +80,7 @@ public:
             cp0_.set_exception_code(cp0_.Exc_AdEL);
             cp0_.registers_[cp0_.BadVAddr] = virtual_addr;
 	printf("Desconocida word\n");
-	printf("Desconocida TLB refill virtual :%X virtual y:\n", virtual_addr);
+	printf("Desconocida TLB refill virtual :%x virtual y:\n", virtual_addr);
             exception = true;
             return 0x00;
         }
@@ -217,7 +217,7 @@ private:
                     cp0_.registers_[cp0_.Context] |= virtual_addr >> 13 << 4;
                     cp0_.registers_[cp0_.EntryHi] &= 0x00001fff; 
                     cp0_.registers_[cp0_.EntryHi] |= virtual_addr & 0xffffe000;
-	printf("Desconocida TLB invalid exception : %X\n", virtual_addr);
+	printf("Desconocida TLB invalid exception : %x\n", virtual_addr);
                     exception = true;
                     return 0x00;
                 }
@@ -245,7 +245,7 @@ private:
         cp0_.registers_[cp0_.Context] |= virtual_addr >> 13 << 4;
         cp0_.registers_[cp0_.EntryHi] &= 0x00001fff; 
         cp0_.registers_[cp0_.EntryHi] |= virtual_addr & 0xffffe000;
-	printf("Desconocida TLB refill virtual :%X virtual y:%X\n", virtual_addr, virtual_addr&0xffffe000);
+	printf("Desconocida TLB refill virtual :%x virtual y:%x\n", virtual_addr, virtual_addr&0xffffe000);
         exception = true;
         return 0x00;
     }

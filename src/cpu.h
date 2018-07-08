@@ -18,7 +18,7 @@ public:
 	
 		if (tick>=1000000) {
 		  tick=0;
-	          printf("instruccion, pc=%X\n", pc_);
+	          printf("instruccion, pc=%x\n", pc_);
 		}
 		tick++;
 
@@ -49,18 +49,18 @@ private:
 
 	#define DEBUG 1
 	#ifdef DEBUG
-		printf("instruccion=%X, pc=%X\n", instruction_, pc_);
+		printf("instruccion=%x, pc=%x\n", instruction_, pc_);
 	#endif
 
 	// SIMPLE SERIAL
 	if (pc_ == 0x801009f4)
 		printf("%c", registers_[REG_V1]);
 	if (pc_ == 0x80167e98) {
-		printf("registro a0 =%X, \n", registers_[REG_A0]);
+		printf("registro a0 =%x, \n", registers_[REG_A0]);
 	} else if (pc_ == 0x80167eac) {
 		int excep;
 		 uint32_t val = mmu_.read_byte(registers_[REG_V0], exception);
-		printf("memoria =%X, \n", val);
+		printf("memoria =%x, \n", val);
 	};
 	if ((pc_ >= 0x80181fe8) && (pc_ <= 0x801822bc)) {
 	//	printf("pc=%X, registro a0 =%X, a1=%X, a2=%X, t0=%x, t1=%X, t2=%X, t3=%X, t4=%X, t5=%X, t6=%X, t7=%X, t8=%X \n", pc_, registers_[REG_A0], registers_[REG_A1], registers_[REG_A2], registers_[REG_T0], registers_[REG_T1], registers_[REG_T2], registers_[REG_T3], registers_[REG_T4], registers_[REG_T5], registers_[REG_T6], registers_[REG_T7], registers_[REG_T8]);
@@ -157,6 +157,7 @@ private:
     void exe_div(bool& exception);
     void exe_lwr(bool& exception);
     void exe_lwl(bool& exception);
+    // pref: esta instruccion no hace nada (en un hw real copia a la cache)
 
     // fields of instruction
     uint32_t main_opcode() const { return instruction_ >> 26; }

@@ -3,6 +3,10 @@
 void CPU::instruction_decode(bool& exception) {
 	// DEBUG printf("opcode=%X\n", main_opcode());
     switch (main_opcode()) {
+	// pref : copiar a la cache, nosotros no hacemos nada
+	case 0b110011:
+		pc_ +=4;
+		return;
         case 0b000000: 
             switch (sub_opcode()) {
                 // sll
