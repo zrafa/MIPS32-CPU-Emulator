@@ -10,13 +10,14 @@
 
 class MMU {
 public:
+/*
  MMU(CP0& cp0, std::istream& rom, std::istream& flash):
         cp0_(cp0), rom_(rom), flash_(flash) {
         ram_.resize(RAM_SIZE);    
         // need not initialize TLB
     }
+*/
 
-/*
     MMU(CP0& cp0, std::istream& rom, std::istream& flash):
         cp0_(cp0), rom_(rom), flash_(flash) {
         ram_.resize(RAM_SIZE);    
@@ -26,22 +27,19 @@ public:
 	uint32_t i;
 	uint32_t palabra;
 	bool exc=true;
-	for (i=0x0; i<0x800000; i++) {	
+	for (i=0x0; i<0x400000; i++) {	
 		exc=false;
 		byte__ = read_physical(0x1e000000+i);
-		write_byte(0x80010000+i, byte__, exc);
-		printf("direccion=%X, palabra=%X \n", 0x1e000000+i, byte__);
+		write_byte(0x80002000+i, byte__, exc);
+		// printf("direccion=%X, palabra=%X \n", 0x1e000000+i, byte__);
 	}
-	sleep(20);
-	for (i=0x0; i<0x800000; i=i+4) {	
+	for (i=0x0; i<0x400000; i=i+4) {	
 		exc=false;
-		palabra = read_word(0x80010000+i, exc);
-		printf("direccion=%X, palabra=%X \n", 0x80010000+i, palabra);
+		palabra = read_word(0x80002000+i, exc);
+		// printf("direccion=%X, palabra=%X \n", 0x80002000+i, palabra);
 	}
-	sleep(20);
 	
     }
-*/
 
     uint8_t read_byte(uint32_t virtual_addr, bool& exception) {
         uint32_t physical_addr = addr_translate(virtual_addr, 0, exception);
@@ -94,8 +92,10 @@ public:
     }
 
     void write_byte(uint32_t virtual_addr, uint8_t data, bool& exception) {
-	if ((virtual_addr == 0xbf000418) || (virtual_addr == 0x1f000418))
-		printf("Direccion bf000418 word\n");
+	if ((virtual_addr == 0xbf000418) || (virtual_addr == 0x1f000418)) {
+		// printf("Direccion bf000418 word\n");
+		return;
+	}
         uint32_t physical_addr = addr_translate(virtual_addr, 1, exception);
 	if ((physical_addr == 0xbf000418) || (physical_addr == 0x1f000418))
 		printf("Direccion 2 bf000418 word\n");
@@ -252,7 +252,7 @@ private:
 
     // virtual memory layout
     constexpr static uint32_t KUSEG_BASE = 0;
-    constexpr static uint32_t KUSEG_SIZE = 0x60000000;
+    constexpr static uint32_t KUSEG_SIZE = 0x80000000;
 
     constexpr static uint32_t KSEG0_BASE = 0x80000000;
     constexpr static uint32_t KSEG0_SIZE = 0x20000000;
@@ -274,7 +274,7 @@ private:
     constexpr static uint32_t FLASH_BASE = 0x1e000000;
     constexpr static uint32_t FLASH_SIZE = 1024 * 1024 * 8;  // 8 MB
 
-    constexpr static uint32_t SERIAL_PORT = 0x1fd003f8;
+    constexpr static uint32_t SERIAL_PORT = 0x1f000418;
     constexpr static uint32_t SERIAL_STATUS = 0x1fd003fc;
 
     std::string ram_;
@@ -283,7 +283,8 @@ private:
 
     CP0& cp0_;
 
-    constexpr static uint32_t k_TLB_ENTRIES = 16;
+    // RAFA quita constexpr static uint32_t k_TLB_ENTRIES = 16;
+    constexpr static uint32_t k_TLB_ENTRIES = 64;
 public:
     // TLB key: VPN2(19 bits) | 0(5 bits) | ASID(8 bits)
     uint32_t tlb_key_[k_TLB_ENTRIES];

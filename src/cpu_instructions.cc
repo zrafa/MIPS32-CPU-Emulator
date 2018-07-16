@@ -48,12 +48,20 @@ void CPU::exe_srav(bool&) {
 
 void CPU::exe_jr(bool&) {
     pc_ = registers_[rs()];
+    #ifdef DEBUG
+    if (registers_[rs()] == registers_[rt()])
+	  printf("%x\n", pc_);
+    #endif
 }
 
 void CPU::exe_jalr(bool&) {
     uint32_t npc = registers_[rs()];
     registers_[rd()] = pc_ + 4;
     pc_ = npc;
+    #ifdef DEBUG
+    if (registers_[rs()] == registers_[rt()])
+	  printf("%x\n", pc_);
+    #endif
 }
 
 void CPU::exe_syscall(bool& exception) {
@@ -64,7 +72,7 @@ void CPU::exe_syscall(bool& exception) {
 
 void CPU::exe_tne(bool& exception) {
     if (registers_[rs()] != registers_[rt()])
-    	exception = true;
+	exception = true;
     pc_ += 4;
     return;
 }
@@ -87,6 +95,15 @@ void CPU::exe_mflo(bool&) {
 
 void CPU::exe_mtlo(bool&) {
     lo_ = registers_[rs()];
+    pc_ += 4;
+}
+
+void CPU::exe_madd(bool&) {
+    int64_t a = registers_[rs()];
+    int64_t b = registers_[rt()];
+    a *= b;
+    hi_ = hi_ + ( uint32_t(a >> 32) );
+    lo_ = lo_ + ( uint32_t(a) );
     pc_ += 4;
 }
 
@@ -169,51 +186,87 @@ void CPU::exe_bltz(bool&) {
     if (int32_t(registers_[rs()]) < 0)
         pc_ += branch_offset() * 4;
     pc_ += 4;
+    #ifdef DEBUG
+    if (registers_[rs()] < 0)
+	  printf("%x\n", pc_);
+    #endif
 }
 
 void CPU::exe_bgez(bool&) {
     if (int32_t(registers_[rs()]) >= 0)
         pc_ += branch_offset() * 4;
     pc_ += 4;
+    #ifdef DEBUG
+    if (registers_[rs()] >= 0)
+	  printf("%x\n", pc_);
+    #endif
 }
 
 void CPU::exe_j(bool&) {
     pc_ = (pc_ & 0xf0000000) | jump_target() * 4;
+    #ifdef DEBUG
+    if (registers_[rs()] == registers_[rt()])
+	  printf("%x\n", pc_);
+    #endif
 }
 
 void CPU::exe_jal(bool&) {
     registers_[REG_RA] = pc_ + 4;
     pc_ = (pc_ & 0xf0000000) | jump_target() * 4;
+    #ifdef DEBUG
+	  printf("%x\n", pc_);
+    #endif
+
 }
 
 void CPU::exe_beq(bool&) {
     if (registers_[rs()] == registers_[rt()])
         pc_ += branch_offset() * 4;
     pc_ += 4;
+    #ifdef DEBUG
+    if (registers_[rs()] == registers_[rt()])
+	  printf("%x\n", pc_);
+    #endif
 }
 
 void CPU::exe_bne(bool&) {
     if (registers_[rs()] != registers_[rt()])
         pc_ += branch_offset() * 4;
     pc_ += 4;
+    #ifdef DEBUG
+    if (registers_[rs()] != registers_[rt()])
+	  printf("%x\n", pc_);
+    #endif
 }
 
 void CPU::exe_blez(bool&) {
     if (int32_t(registers_[rs()]) <= 0)
         pc_ += branch_offset() * 4;
     pc_ += 4;
+    #ifdef DEBUG
+    if (registers_[rs()] <= 0)
+	  printf("%x\n", pc_);
+    #endif
 }
 
 void CPU::exe_bnezl(bool&) {
     if (int32_t(registers_[rs()]) != 0)
         pc_ += branch_offset() * 4;
     pc_ += 4;
+    #ifdef DEBUG
+    if (registers_[rs()] != 0)
+	  printf("%x\n", pc_);
+    #endif
 }
 
 void CPU::exe_bgtz(bool&) {
     if (int32_t(registers_[rs()]) > 0)
         pc_ += branch_offset() * 4;
     pc_ += 4;
+    #ifdef DEBUG
+    if (registers_[rs()] > 0)
+	  printf("%x\n", pc_);
+    #endif
 }
 
 void CPU::exe_addiu(bool&) {

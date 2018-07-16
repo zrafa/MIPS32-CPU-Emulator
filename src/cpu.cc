@@ -227,6 +227,9 @@ void CPU::instruction_decode(bool& exception) {
             return exe_sh(exception);
         case 0b011100: // especial 
             switch (sub_opcode()) {
+		// madd
+                case 0b000000:
+            		return exe_madd(exception);
 		// mul
                 case 0b000010:
             		return exe_mul(exception);
@@ -252,20 +255,22 @@ void CPU::instruction_decode(bool& exception) {
               			case 0b00010:
             				return exe_cfc1(exception);
 	               		default:
-    				    printf("Desconocida especial 0\n");
+    				    printf("Desconocida especial 01\n");
 		                    cp0_.set_exception_code(cp0_.Exc_RI);
        	        		    exception = true;
 		                    return;
 	                }
                 default:
-			printf("Desconocida especial 0\n");
+			printf("Desconocida especial 02\n");
+			printf("i=%x, pc=%x, registro a0 =%x, a1=%x, a2=%x a2=%x \n", instruction_, pc_, registers_[REG_A0], registers_[REG_A1], registers_[REG_A2], registers_[REG_A3]);
+
 	                cp0_.set_exception_code(cp0_.Exc_RI);
           	        exception = true;
 		        return;
             }
         // unknown instruction exception
         default:
-				printf("Desconocida 3 codigo=%X sub_opcode=%X\n", main_opcode(), sub_opcode());
+		printf("Desconocida 3 codigo=%X sub_opcode=%X\n", main_opcode(), sub_opcode());
             cp0_.set_exception_code(cp0_.Exc_RI);
             exception = true;
             return;

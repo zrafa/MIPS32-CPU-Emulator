@@ -6,8 +6,8 @@
 class CPU {
 public:
     CPU(std::istream& rom, std::istream& flash, uint32_t entry): 
-        // RAFA cp0_(), mmu_(cp0_, rom, flash), pc_(entry) { }
-        cp0_(), mmu_(cp0_, rom, flash), pc_(PC_INITIAL) { }
+        cp0_(), mmu_(cp0_, rom, flash), pc_(entry) { }
+        // RAFA cp0_(), mmu_(cp0_, rom, flash), pc_(PC_INITIAL) { }
 
     void run() {
 	unsigned int tick=0; // RAFA
@@ -18,7 +18,7 @@ public:
 	
 		if (tick>=1000000) {
 		  tick=0;
-	          printf("instruccion, pc=%x\n", pc_);
+	          // printf("instruccion, pc=%x\n", pc_);
 		}
 		tick++;
 
@@ -47,16 +47,24 @@ private:
         // instruction fetch
         instruction_ = mmu_.read_word(pc_, exception);
 
+	printf("%x\n", pc_);
 	// #define DEBUG 1
 	#ifdef DEBUG
-		printf("instruccion=%x, pc=%x\n", instruction_, pc_);
+		// printf("instruccion=%x, pc=%x\n", instruction_, pc_);
+		// printf("i=%x, pc=%x, registro a0 =%x, a1=%x, a2=%x a2=%x \n", instruction_, pc_, registers_[REG_A0], registers_[REG_A1], registers_[REG_A2], registers_[REG_A3]);
+		// printf("%x\n", pc_);
+		if (pc_ == 0x80000180)
+			printf("\n EXCEPCION \n");
 	#endif
 
-	if (pc_ == 0x80189fa8)
-		printf("registro a0 =%x, a1=%x, a2=%x \n", registers_[REG_A0], registers_[REG_A1], registers_[REG_A2]);
+	if (pc_ == 0x802c5fdc)
+		printf("registro a0 =%x, a1=%x, a2=%x a2=%x \n", registers_[REG_A0], registers_[REG_A1], registers_[REG_A2], registers_[REG_A3]);
 	// SIMPLE SERIAL
-	if (pc_ == 0x801009f4)
-		printf("%c", registers_[REG_V1]);
+	if (pc_ == 0x80002e34) {
+		printf("%c", registers_[REG_A0]);
+		fflush(stdout);
+		// printf("AHORA \n");
+	}
 	if (pc_ == 0x80167e98) {
 		printf("registro a0 =%x, \n", registers_[REG_A0]);
 	} else if (pc_ == 0x80167eac) {
@@ -64,8 +72,8 @@ private:
 		 uint32_t val = mmu_.read_byte(registers_[REG_V0], exception);
 		printf("memoria =%x, \n", val);
 	};
-	if ((pc_ >= 0x80181fe8) && (pc_ <= 0x801822bc)) {
-	//	printf("pc=%X, registro a0 =%X, a1=%X, a2=%X, t0=%x, t1=%X, t2=%X, t3=%X, t4=%X, t5=%X, t6=%X, t7=%X, t8=%X \n", pc_, registers_[REG_A0], registers_[REG_A1], registers_[REG_A2], registers_[REG_T0], registers_[REG_T1], registers_[REG_T2], registers_[REG_T3], registers_[REG_T4], registers_[REG_T5], registers_[REG_T6], registers_[REG_T7], registers_[REG_T8]);
+	if ((pc_ >= 0x8018948c) && (pc_ <= 0x80189594)) {
+		printf("pc=%X, registro a0 =%X, a1=%X, a2=%X, t0=%x, t1=%X, t2=%X, t3=%X, t4=%X, t5=%X, t6=%X, t7=%X, t8=%X \n", pc_, registers_[REG_A0], registers_[REG_A1], registers_[REG_A2], registers_[REG_T0], registers_[REG_T1], registers_[REG_T2], registers_[REG_T3], registers_[REG_T4], registers_[REG_T5], registers_[REG_T6], registers_[REG_T7], registers_[REG_T8]);
 	};
 
         if (exception) return;
@@ -106,6 +114,7 @@ private:
     void exe_mthi(bool& exception);
     void exe_mflo(bool& exception);
     void exe_mtlo(bool& exception);
+    void exe_madd(bool& exception);
     void exe_mult(bool& exception);
     void exe_addu(bool& exception);
     void exe_subu(bool& exception);
